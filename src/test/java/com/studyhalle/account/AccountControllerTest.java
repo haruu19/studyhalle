@@ -16,6 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -40,7 +42,8 @@ class AccountControllerTest {
                 .param("email", "haruu0419@gmail.com"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("error"))
-                .andExpect(view().name("account/checked-email"));
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(unauthenticated()); // spring security가 있는 mockMvc와 없는 mockMvc의 기능은 다르다 ex) csrf
     }
 
     @DisplayName("인증 메일 확인 - 입력값 정상")
@@ -61,7 +64,8 @@ class AccountControllerTest {
                 .andExpect(model().attributeDoesNotExist("error"))
                 .andExpect(model().attributeExists("nickname"))
                 .andExpect(model().attributeExists("numberOfUser"))
-                .andExpect(view().name("account/checked-email"));
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(authenticated().withUsername("wonhee"));
     }
 
     @DisplayName("회원 가입 화면 보이는지 테스트")
@@ -71,19 +75,34 @@ class AccountControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(view().name("account/sign-up"))
-                .andExpect(model().attributeExists("signUpForm"));
+                .andExpect(model().attributeExists("signUpForm"))
+                .andExpect(unauthenticated());
+    }
+
+    @DisplayName("회원 가입 처리 - 입력값 오류")
+    @Test
+    void signUpSubmit_with_wrong_input() throws Exception {
+        mockMvc.perform(post("/sign-up")
+                        .param("nickname","wonhee")
+                        .param("email", "email")
+                        .param("password", "12345") // 입력값이 8자리 이상이어야 함
+                        .with(csrf()))  // csrf 토큰을 넣어주어 spring security 통과
+                .andExpect(status().isOk())
+                .andExpect(view().name("account/sign-up"))
+                .andExpect(unauthenticated());
     }
 
     @DisplayName("회원 가입 처리 - 입력값 정상")
     @Test
     void signUpSubmit_with_correct_input() throws Exception {
         mockMvc.perform(post("/sign-up")
-                        .param("nickname","wonhee")
-                        .param("email", "haruu0419@gmail.com")
-                        .param("password", "12345678")
-                        .with(csrf()))  // csrf 토큰을 넣어주어 spring security 통과
+                .param("nickname","wonhee")
+                .param("email", "haruu0419@gmail.com")
+                .param("password", "12345678")
+                .with(csrf()))  // csrf 토큰을 넣어주어 spring security 통과
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"));
+                .andExpect(view().name("redirect:/"))
+                .andExpect(authenticated().withUsername("wonhee"));
 
         Account account = accountRepository.findByEmail("haruu0419@gmail.com");
         assertNotNull(account);
@@ -91,17 +110,5 @@ class AccountControllerTest {
         assertNotNull(account.getEmailCheckToken());
         assertTrue(accountRepository.existsByEmail("haruu0419@gmail.com"));
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
-    }
-
-    @DisplayName("회원 가입 처리 - 입력값 오류")
-    @Test
-    void signUpSubmit_with_wrong_input() throws Exception {
-        mockMvc.perform(post("/sign-up")
-                .param("nickname","wonhee")
-                .param("email", "email")
-                .param("password", "12345") // 입력값이 8자리 이상이어야 함
-                .with(csrf()))  // csrf 토큰을 넣어주어 spring security 통과
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("account/sign-up"));
     }
 }
