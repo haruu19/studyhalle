@@ -11,7 +11,9 @@
 <head th:replace="fragments.html :: head"></head>
 <body class="bg-light">
     <div th:replace="fragments.html :: main-nav"></div>
-
+    <div class="alert alert-warning" role="alert" th:if="${account != null && !account?.emailVerified}">
+        스터디할래 가입을 완료하려면 <a th:href="@{/check-email}" class="alert-link">계정 인증 이메일을 확인</a>하세요.
+    </div>
     <div class="container">
         <div class="py-5 text-center">
             <h2>스터디할래</h2>
@@ -22,8 +24,6 @@
 
 <!-- JavaScript Bundle with Popper -->
 <!-- 자바스크립트는 로딩할 때 시간이 걸릴 수 있어서 헤더에 넣으면 로딩하느라 끊겨서 렌더링이 늦어진다. 그러므로 렌더링 다 한 후에 바디에서 자바스크립트를 로딩하게 끔 한다 -->
-<script src="/node_modules/jquery/dist/jquery.min.js"></script>
-<script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
 <script type="application/javascript">
     (function () {
 
