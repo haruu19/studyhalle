@@ -6,3 +6,6 @@
 # Maven
 log/
 target/
+
+### NPM ###
+src/main/resources/static/node_modules
