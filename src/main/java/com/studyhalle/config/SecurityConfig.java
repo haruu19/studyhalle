@@ -20,7 +20,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests()
-                .mvcMatchers("/","/login","/sign-up","/check-email","/check-email-token",
+                .mvcMatchers("/","/login","/sign-up","/check-email-token",
                         "/email-login","/check-email-login","/login-link").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/profile/*").permitAll()
                 .anyRequest().authenticated();
