@@ -12,18 +12,9 @@
     </div>
     <div class="container">
         <div class="py-5 text-center">
-            <h2>스터디할래</h2>
+            <h2>StudyHalle</h2>
         </div>
-
-        <div th:replace="fragments.html :: footer"></div>
     </div>
-
-<!-- JavaScript Bundle with Popper -->
-<!-- 자바스크립트는 로딩할 때 시간이 걸릴 수 있어서 헤더에 넣으면 로딩하느라 끊겨서 렌더링이 늦어진다. 그러므로 렌더링 다 한 후에 바디에서 자바스크립트를 로딩하게 끔 한다 -->
-<script type="application/javascript">
-    (function () {
-
-    }())
-</script>
+    <div th:replace="fragments.html :: footer"></div>
 </body>
 </html>

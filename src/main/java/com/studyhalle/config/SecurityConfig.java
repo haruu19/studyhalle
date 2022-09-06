@@ -25,6 +25,12 @@ public class SecurityConfig {
                 .mvcMatchers(HttpMethod.GET, "/profile/*").permitAll()
                 .anyRequest().authenticated();
 
+        http.formLogin()
+                .loginPage("/login").permitAll();
+
+        http.logout()
+                .logoutSuccessUrl("/");
+
         return http.build();
     }
 

@@ -8,13 +8,13 @@
 
     <div class="container">
         <div class="py-5 text-center">
+            <p class="lead">StudyHalle</p>
             <h2>계정 만들기</h2>
         </div>
-
         <div class="row justify-content-center">
             <form class="needs-validation col-sm-6" action="#"
                   th:action="@{/sign-up}" th:object="${signUpForm}" method="post" novalidate>
-                <div class="mb-3">
+                <div class="form-group">
                     <label for="nickname">닉네임</label>
                     <input id="nickname" type="text" th:field="*{nickname}" class="form-control"
                            placeholder="whiteship" aria-describedby="nicknameHelp" required minlength="3" maxlength="20">
@@ -25,18 +25,18 @@
                     <small class="form-text text-danger" th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}">Nickname Error</small>
                 </div>
 
-                <div class="mb-3">
+                <div class="form-group">
                     <label for="email">이메일</label>
                     <input id="email" type="email" th:field="*{email}" class="form-control"
                            placeholder="your@email.com" aria-describedby="emailHelp" required>
                     <small id="emailHelp" class="form-text text-muted">
-                        스터디올래는 사용자의 이메일을 공개하지 않습니다.
+                        StudyHalle는 사용자의 이메일을 공개하지 않습니다.
                     </small>
                     <small class="invalid-feedback">이메일을 입력하세요.</small>
                     <small class="form-text text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error</small>
                 </div>
 
-                <div class="mb-3">
+                <div class="form-group">
                     <label for="password">패스워드</label>
                     <input id="password" type="password" th:field="*{password}" class="form-control"
                            aria-describedby="passwordHelp" required minlength="8" maxlength="50">
@@ -56,32 +56,10 @@
                 </div>
             </form>
         </div>
-
-        <div th:replace="fragments.html :: footer"></div>
     </div>
+    <div th:replace="fragments.html :: footer"></div>
 
-<!-- JavaScript Bundle with Popper -->
-<!-- 자바스크립트는 로딩할 때 시간이 걸릴 수 있어서 헤더에 넣으면 로딩하느라 끊겨서 렌더링이 늦어진다. 그러므로 렌더링 다 한 후에 바디에서 자바스크립트를 로딩하게 끔 한다 -->
-<script type="application/javascript">
-    (function () {
-        'use strict';
-
-        window.addEventListener('load', function () {
-            // Fetch all the forms we want to apply custom Bootstrap validation styles to
-            var forms = document.getElementsByClassName('needs-validation');
-
-            // Loop over them and prevent submission
-            Array.prototype.filter.call(forms, function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (form.checkValidity() === false) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        }, false)
-    }())
-</script>
+<!-- 자바스크립트는 로딩할 때 시간이 걸릴 수 있어서 헤더에 넣으면 로딩하느라 끊겨서 렌더링이 늦어진다. 그러므로 렌더링 다 한 후에 바디에서 자바스크립트를 로딩하게끔 한다 -->
+<script th:replace="fragments.html :: form-validation"></script>
 </body>
 </html>
