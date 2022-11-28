@@ -95,6 +95,10 @@ public class AccountService implements UserDetailsService {
         account.setBio(profile.getBio());
         account.setProfileImage(profile.getProfileImage());
         accountRepository.save(account); // account 파라미터가 detached 상태, 영속성 컨테이너의 관리를 받고 있지 않기 때문에 save 해주면 merge 된다.
-        // TODO 문제가 하나 더 남았습니다.
+    }
+
+    public void updatePassword(Account account, String newPassword) {
+        account.setPassword(newPassword);
+        accountRepository.save(account); // merge
     }
 }
