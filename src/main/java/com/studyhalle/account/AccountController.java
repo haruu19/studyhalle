@@ -1,18 +1,16 @@
 package com.studyhalle.account;
 
+import com.studyhalle.account.form.SignUpForm;
+import com.studyhalle.account.validator.SignUpFormValidator;
 import com.studyhalle.domain.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
@@ -27,7 +25,6 @@ public class AccountController {
     public void initBinder(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(signUpFormValidator);
     }
-
 
     @GetMapping("/sign-up")
     public String signupForm(Model model) {

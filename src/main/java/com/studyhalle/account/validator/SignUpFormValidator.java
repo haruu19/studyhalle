@@ -1,7 +1,8 @@
-package com.studyhalle.account;
+package com.studyhalle.account.validator;
 
+import com.studyhalle.account.AccountRepository;
+import com.studyhalle.account.form.SignUpForm;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;

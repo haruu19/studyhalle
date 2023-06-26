@@ -1,5 +1,6 @@
 package com.studyhalle.account;
 
+import com.studyhalle.account.form.SignUpForm;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
