@@ -3,9 +3,11 @@ package com.studyhalle.settings;
 import com.studyhalle.account.AccountService;
 import com.studyhalle.account.CurrentUser;
 import com.studyhalle.domain.Account;
+import com.studyhalle.settings.form.NicknameForm;
 import com.studyhalle.settings.form.Notifications;
 import com.studyhalle.settings.form.PasswordForm;
 import com.studyhalle.settings.form.Profile;
+import com.studyhalle.settings.validator.NicknameValidator;
 import com.studyhalle.settings.validator.PasswordFormValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -30,13 +32,22 @@ public class SettingsController {
     static final String SETTINGS_PASSWORD_URL = "/" + SETTINGS_PASSWORD_VIEW_NAME;
     static final String SETTINGS_NOTIFICATIONS_VIEW_NAME = "settings/notifications";
     static final String SETTINGS_NOTIFICATIONS_URL = "/" + SETTINGS_NOTIFICATIONS_VIEW_NAME;
+    static final String SETTINGS_ACCOUNT_VIEW_NAME = "settings/account";
+    static final String SETTINGS_ACCOUNT_URL = "/" + SETTINGS_ACCOUNT_VIEW_NAME;
+
 
     private final AccountService accountService;
     private final ModelMapper modelMapper;
+    private final NicknameValidator nicknameValidator;
 
     @InitBinder("passwordForm")
-    public void initBinder(WebDataBinder webDataBinder) {
+    public void passwordInitBinder(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(new PasswordFormValidator());
+    }
+
+    @InitBinder("nicknameForm")
+    public void nicknameInitBinder(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(nicknameValidator);
     }
 
     @GetMapping(SETTINGS_PROFILE_URL)
@@ -89,7 +100,7 @@ public class SettingsController {
     @PostMapping(SETTINGS_NOTIFICATIONS_URL)
     public String updateNotifications(@CurrentUser Account account, @Valid Notifications notifications, Errors errors,
                                       Model model, RedirectAttributes attributes) {
-        if(errors.hasErrors()) {
+        if (errors.hasErrors()) {
             model.addAttribute(account);
             return SETTINGS_NOTIFICATIONS_VIEW_NAME;
         }
@@ -97,5 +108,25 @@ public class SettingsController {
         accountService.updateNotifications(account, notifications);
         attributes.addFlashAttribute("message", "알림 설정을 변경했습니다.");
         return "redirect:" + SETTINGS_NOTIFICATIONS_URL;
+    }
+
+    @GetMapping(SETTINGS_ACCOUNT_URL)
+    public String updateAccountForm(@CurrentUser Account account, Model model) {
+        model.addAttribute(account);
+        model.addAttribute(modelMapper.map(account, NicknameForm.class));
+        return SETTINGS_ACCOUNT_VIEW_NAME;
+    }
+
+    @PostMapping(SETTINGS_ACCOUNT_URL)
+    public String updateAccount(@CurrentUser Account account, @Valid NicknameForm nicknameForm, Errors errors,
+                                Model model, RedirectAttributes attributes) {
+        if (errors.hasErrors()) {
+            model.addAttribute(account);
+            return SETTINGS_ACCOUNT_VIEW_NAME;
+        }
+
+        accountService.updateNickname(account, nicknameForm.getNickname());
+        attributes.addFlashAttribute("message", "닉네임을 수정했습니다.");
+        return "redirect:" + SETTINGS_ACCOUNT_URL;
     }
 }
