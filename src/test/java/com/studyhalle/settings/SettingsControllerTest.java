@@ -1,16 +1,24 @@
 package com.studyhalle.settings;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studyhalle.WithAccount;
 import com.studyhalle.account.AccountRepository;
+import com.studyhalle.account.AccountService;
 import com.studyhalle.domain.Account;
+import com.studyhalle.domain.Tag;
+import com.studyhalle.settings.form.TagForm;
+import com.studyhalle.tag.TagRepository;
+import lombok.With;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -18,16 +26,89 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 class SettingsControllerTest {
+    @WithAccount(value = "haruu19") // 커스터마이징 어노테이션을 통해 테스트 코드를 수월하게 작성할 수 있다.
+    @DisplayName("프로필 수정하기 - 입력값 정상")
+    @Test
+    void updateProfile() throws Exception {
+        String bio = "짧은 소개를 수정하는 경우.";
+        mockMvc.perform(post(SettingsController.SETTINGS_PROFILE_URL)
+                        .param("bio", bio)
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(SettingsController.SETTINGS_PROFILE_URL))
+                .andExpect(flash().attributeExists("message"));
+
+        Account haruu19 = accountRepository.findByNickname("haruu19");
+        assertEquals(bio, haruu19.getBio());
+    }
     @Autowired MockMvc mockMvc;
     @Autowired AccountRepository accountRepository;
     @Autowired PasswordEncoder passwordEncoder;
+    @Autowired ObjectMapper objectMapper;
+    @Autowired TagRepository tagRepository;
+    @Autowired AccountService accountService;
 
     @AfterEach
     void afterEach() {
         accountRepository.deleteAll();
+    }
+
+    @WithAccount("haruu19")
+    @DisplayName("계정의 태그 수정 폼")
+    @Test
+    void updateTagsForm() throws Exception {
+        mockMvc.perform(get(SettingsController.SETTINGS_TAGS_URL))
+                .andExpect(view().name(SettingsController.SETTINGS_TAGS_VIEW_NAME))
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("whitelist"))
+                .andExpect(model().attributeExists("tags"));
+    }
+
+    @WithAccount("haruu19")
+    @DisplayName("계정에 태그 추가")
+    @Test
+    void addTag() throws Exception {
+        TagForm tagForm = new TagForm();
+        tagForm.setTagTitle("newTag");
+
+        mockMvc.perform(post(SettingsController.SETTINGS_TAGS_URL + "/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(tagForm))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        Tag newTag = tagRepository.findByTitle("newTag");
+        assertNotNull(newTag);
+        Account haruu19 = accountRepository.findByNickname("haruu19");
+        assertTrue(haruu19.getTags().contains(newTag)); // 이 라인은 persist 상태가 아닌 detached 상태이다. -> LazyInitialization 예외 발생. -> @Transactional을 붙여줌으로써 해결.
+        // getTags로 LazyLoading을 하려면 세션이 있어야 한다. EntityManager과 관리하고있는 트랜잭션 안에서 get을 해야만 가져올 수 있다.
+    }
+
+    @WithAccount("haruu19")
+    @DisplayName("계정에 태그 삭제")
+    @Test
+    void removeTag() throws Exception {
+        Account haruu19 = accountRepository.findByNickname("haruu19");
+        Tag newTag = tagRepository.save(Tag.builder().title("newTag").build());
+
+        accountService.addTag(haruu19, newTag);
+
+        assertTrue(haruu19.getTags().contains(newTag));
+
+        TagForm tagForm = new TagForm();
+        tagForm.setTagTitle("newTag");
+
+        mockMvc.perform(post(SettingsController.SETTINGS_TAGS_URL + "/remove")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(tagForm))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertFalse(haruu19.getTags().contains(newTag)); // 이 라인은 persist 상태가 아닌 detached 상태이다. -> LazyInitialization 예외 발생. -> @Transactional을 붙여줌으로써 해결.
     }
 
     @WithAccount(value = "haruu19") // 커스터마이징 어노테이션을 통해 테스트 코드를 수월하게 작성할 수 있다.
@@ -38,22 +119,6 @@ class SettingsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("profile"));
-    }
-
-    @WithAccount(value = "haruu19") // 커스터마이징 어노테이션을 통해 테스트 코드를 수월하게 작성할 수 있다.
-    @DisplayName("프로필 수정하기 - 입력값 정상")
-    @Test
-    void updateProfile() throws Exception {
-        String bio = "짧은 소개를 수정하는 경우.";
-        mockMvc.perform(post(SettingsController.SETTINGS_PROFILE_URL)
-                        .param("bio", bio)
-                .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(SettingsController.SETTINGS_PROFILE_URL))
-                .andExpect(flash().attributeExists("message"));
-
-        Account haruu19 = accountRepository.findByNickname("haruu19");
-        assertEquals(bio, haruu19.getBio());
     }
 
     @WithAccount(value = "haruu19") // 커스터마이징 어노테이션을 통해 테스트 코드를 수월하게 작성할 수 있다.
